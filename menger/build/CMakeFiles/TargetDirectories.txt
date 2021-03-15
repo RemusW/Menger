@@ -1,0 +1,6 @@
+/home/remusw/Documents/Graphics/Proj3/menger/build/CMakeFiles/rebuild_cache.dir
+/home/remusw/Documents/Graphics/Proj3/menger/build/CMakeFiles/edit_cache.dir
+/home/remusw/Documents/Graphics/Proj3/menger/build/CMakeFiles/utgraphicsutil.dir
+/home/remusw/Documents/Graphics/Proj3/menger/build/src/CMakeFiles/rebuild_cache.dir
+/home/remusw/Documents/Graphics/Proj3/menger/build/src/CMakeFiles/edit_cache.dir
+/home/remusw/Documents/Graphics/Proj3/menger/build/src/CMakeFiles/menger.dir

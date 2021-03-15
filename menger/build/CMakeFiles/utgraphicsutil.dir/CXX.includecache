@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/debuggl.cc
+debuggl.h
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/debuggl.h
+GL/glew.h
+-
+GLFW/glfw3.h
+-
+
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/debuggl.h
+
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/image.h
+vector
+-
+
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/jpegio.cc
+jpegio.h
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/jpegio.h
+vector
+-
+jpeglib.h
+-
+stdio.h
+-
+
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/jpegio.h
+string
+-
+image.h
+/home/remusw/Documents/Graphics/Proj3/menger/lib/utgraphicsutil/image.h
+
