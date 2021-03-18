@@ -1,0 +1,11 @@
+Group Members: Remus Wong (rcw2448), Marlowe Johnson (msj879)
+
+What has been accomplished: 
+    1. basic understanding of the project and what needs to be done
+    2. Starting triangle shows up on screen
+    3. Working on getting the initial cube showing
+
+Plan for completing on the project on time 
+Work for a good portion over the spring break and then spend some of the time during the week of school it is due. 
+We plan to further look at the openGL tutorials for the initial set and further consult the lectures for future issues. 
+We finished the last project within a good time frame and think we will have no problem with time management and getting this project done in time.

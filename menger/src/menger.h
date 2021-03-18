@@ -13,7 +13,9 @@ public:
 	void set_clean();
 	void generate_geometry(std::vector<glm::vec4>& obj_vertices,
 	                       std::vector<glm::uvec3>& obj_faces) const;
+	void CreateMenger(glm::vec3 M, glm::vec3 m, std::vector<glm::vec4>& obj_vertices, std::vector<glm::uvec3>& obj_faces) const;
 private:
+	void subdivide(int depth, glm::vec3 M, glm::vec3 m, std::vector<glm::vec4>& obj_vertices, std::vector<glm::uvec3>& obj_faces) const;
 	int nesting_level_ = 0;
 	bool dirty_ = false;
 };

@@ -93,10 +93,36 @@ void
 CreateTriangle(std::vector<glm::vec4>& vertices,
         std::vector<glm::uvec3>& indices)
 {
-	vertices.push_back(glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f));
-	vertices.push_back(glm::vec4(0.5f, -0.5f, -0.5f, 1.0f));
-	vertices.push_back(glm::vec4(0.0f, 0.5f, -0.5f, 1.0f));
-	indices.push_back(glm::uvec3(0, 1, 2));
+	// vertices.push_back(glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f));
+	// vertices.push_back(glm::vec4(0.5f, -0.5f, -0.5f, 1.0f));
+	// vertices.push_back(glm::vec4(0.0f, 0.5f, -0.5f, 1.0f));
+	// indices.push_back(glm::uvec3(0, 1, 2));
+	double M = .1f;
+	double m = -1*M;
+	double t = 1;
+	vertices.push_back(glm::vec4(m,m,m-1, t));	// 0, far-bot left
+	vertices.push_back(glm::vec4(M,m,m-1, t));	// 1, far-bot right
+	vertices.push_back(glm::vec4(M,m,M-1, t));	// 2, near-bot right
+	vertices.push_back(glm::vec4(m,m,M-1, t));	// 3, near_bot left
+	vertices.push_back(glm::vec4(m,M,m-1, t));	// 4, far-top left
+	vertices.push_back(glm::vec4(M,M,m-1, t));	// 5, far-top right
+	vertices.push_back(glm::vec4(M,M,M-1, t));	// 6, near-top right
+	vertices.push_back(glm::vec4(m,M,M-1, t));	// 7, near-top left
+	
+
+	indices.push_back(glm::uvec3(0, 4, 5));
+	indices.push_back(glm::uvec3(1, 5, 6));
+	indices.push_back(glm::uvec3(2, 6, 7));
+	indices.push_back(glm::uvec3(3, 7, 4));
+	indices.push_back(glm::uvec3(3, 0, 1));
+	indices.push_back(glm::uvec3(4, 7, 6));
+	
+	indices.push_back(glm::uvec3(6, 5, 4));
+	indices.push_back(glm::uvec3(1, 2, 3));
+	indices.push_back(glm::uvec3(4, 0, 3));
+	indices.push_back(glm::uvec3(7, 3, 2));
+	indices.push_back(glm::uvec3(6, 2, 1));
+	indices.push_back(glm::uvec3(5, 1, 0));
 }
 
 // FIXME: Save geometry to OBJ file
@@ -213,7 +239,8 @@ int main(int argc, char* argv[])
 	std::vector<glm::uvec3> obj_faces;
 
         //FIXME: Create the geometry from a Menger object.
-        CreateTriangle(obj_vertices, obj_faces);
+		g_menger->generate_geometry(obj_vertices, obj_faces);
+        //CreateTriangle(obj_vertices, obj_faces);
 
 	g_menger->set_nesting_level(1);
 
