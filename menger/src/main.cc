@@ -15,6 +15,8 @@
 #include "menger.h"
 #include "camera.h"
 
+using namespace std;
+
 int window_width = 800, window_height = 600;
 
 // VBO and VAO descriptors.
@@ -53,11 +55,25 @@ void main()
 {
 	int n = 0;
 	normal = vec4(0.0, 0.0, 1.0f, 0.0);
+	vec4 a,b;
+	a = projection * (gl_in[1].gl_Position - gl_in[0].gl_Position);
+	b = projection * (gl_in[2].gl_Position - gl_in[0].gl_Position);
+	vec3 a3, b3;
+	a3.x = a.x;
+	a3.y = a.y;
+	a3.z = a.z;
+	b3.x = b.x;
+	b3.y = b.y;
+	b3.z = b.z;
+	vec3 cx = cross(a3, b3);
+	normal = vec4(cx.x, cx.y, cx.z, 1.0f);
 	for (n = 0; n < gl_in.length(); n++) {
 		light_direction = vs_light_direction[n];
 		gl_Position = projection * gl_in[n].gl_Position;
+		normal = projection * gl_in[0].gl_Position;
 		EmitVertex();
 	}
+	//normal = projection * gl_in[0].gl_Position;
 	EndPrimitive();
 }
 )zzz";
@@ -69,10 +85,17 @@ in vec4 light_direction;
 out vec4 fragment_color;
 void main()
 {
-	vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
+	vec4 color = normal;
+	if (abs(normal.x) == 1.0)
+    	color = vec4(1.0, 0.0, 0.0, 1.0); //red
+	if (abs(normal.y) == 1.0)
+    	color = vec4(0.0, 1.0, 0.0, 1.0); //green
+	if (abs(normal.z) == 1.0)
+    	color = vec4(0.0, 0.0, 1.0, 1.0); //blue
 	float dot_nl = dot(normalize(light_direction), normalize(normal));
 	dot_nl = clamp(dot_nl, 0.0, 1.0);
 	fragment_color = clamp(dot_nl * color, 0.0, 1.0);
+	fragment_color = color;
 }
 )zzz";
 
@@ -88,6 +111,21 @@ void main()
 	fragment_color = vec4(0.0, 0.0, 0.0, 1.0);
 }
 )zzz";
+
+/*const char* ground_floor_fragment_shader = 
+R"zzz(#version 330 core 
+flat in vec4 normal;
+in vec4 light_direction;
+out vec4 fragment_color;
+void main()
+{
+	vec4 color = (1.0,1.0,1.0,1.0)
+	float dot_nl = dot(normalize(light_direction), normalize(normal));
+	dot_nl = clamp(dot_nl, 0.0, 1.0);
+	fragment_color = clamp(dot_nl * color, 0.0, 1.0);
+
+)zzz";*/
+
 
 void
 CreateTriangle(std::vector<glm::vec4>& vertices,
@@ -125,12 +163,32 @@ CreateTriangle(std::vector<glm::vec4>& vertices,
 	indices.push_back(glm::uvec3(5, 1, 0));
 }
 
+void CreateFloor (std::vector<glm::vec4>& vertices,
+        std::vector<glm::uvec3>& indices) 
+		{
+			//l-r/u-d/n-f
+		double M = 2.1f;
+	    double m = -1*M;
+	    double t = 1;	
+
+        vertices.push_back(glm::vec4(m,-2.0,m,0)); //1 l / f
+        vertices.push_back(glm::vec4(m,-2.0,M,t)); //2 l / n
+		vertices.push_back(glm::vec4(M,-2.0,m,0)); //3 r / f
+		vertices.push_back(glm::vec4(M,-2.0,M,t)); //4 r / n
+
+        indices.push_back(glm::uvec3(1,3,2));
+		indices.push_back(glm::uvec3(2,4,1));
+		indices.push_back(glm::uvec3(3,4,2));
+		indices.push_back(glm::uvec3(1,2,4));
+		}
+		
 // FIXME: Save geometry to OBJ file
 void
 SaveObj(const std::string& file,
         const std::vector<glm::vec4>& vertices,
         const std::vector<glm::uvec3>& indices)
 {
+
 }
 
 void
@@ -156,28 +214,35 @@ KeyCallback(GLFWwindow* window,
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	else if (key == GLFW_KEY_S && mods == GLFW_MOD_CONTROL && action == GLFW_RELEASE) {
 		// FIXME: save geometry to OBJ
-	} else if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
-		// FIXME: WASD
-	} else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_A && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_D && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-		// FIXME: Left Right Up and Down
-	} else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
-	} else if (key == GLFW_KEY_C && action != GLFW_RELEASE) {
-		// FIXME: FPS mode on/off
+		/*if (action != GLFW_RELEASE)
+		{
+			switch (key)
+			case     GLFW_KEY_W : break;
+			case     GLFW_KEY_S : break;
+			case     GLFW_KEY_A : break;
+			case     GLFW_KEY_D : break;
+			case	 GLFW_KEY_LEFT : break;
+			case	 GLFW_KEY_RIGHT : break;
+			case	 GLFW_KEY_DOWN : break;
+			case	 GLFW_KEY_UP : break;
+			case	 GLFW_KEY_C : break;
+			default : break;
+		}*/
 	}
 	if (!g_menger)
 		return ; // 0-4 only available in Menger mode.
 	if (key == GLFW_KEY_0 && action != GLFW_RELEASE) {
+		g_menger->set_nesting_level(0);
 		// FIXME: Change nesting level of g_menger
 		// Note: GLFW_KEY_0 - 4 may not be continuous.
 	} else if (key == GLFW_KEY_1 && action != GLFW_RELEASE) {
+		g_menger->set_nesting_level(1);
 	} else if (key == GLFW_KEY_2 && action != GLFW_RELEASE) {
+		g_menger->set_nesting_level(2);
 	} else if (key == GLFW_KEY_3 && action != GLFW_RELEASE) {
+		g_menger->set_nesting_level(3);
 	} else if (key == GLFW_KEY_4 && action != GLFW_RELEASE) {
+		g_menger->set_nesting_level(4);
 	}
 }
 
@@ -238,10 +303,13 @@ int main(int argc, char* argv[])
 	std::vector<glm::vec4> obj_vertices;
 	std::vector<glm::uvec3> obj_faces;
 
+    std::vector<glm::vec4> floor_vertices;
+	std::vector<glm::uvec3> floor_faces;
+
         //FIXME: Create the geometry from a Menger object.
 		g_menger->generate_geometry(obj_vertices, obj_faces);
         //CreateTriangle(obj_vertices, obj_faces);
-
+        //CreateFloor(floor_vertices,floor_faces);
 	g_menger->set_nesting_level(1);
 
 	glm::vec4 min_bounds = glm::vec4(std::numeric_limits<float>::max());
@@ -285,6 +353,12 @@ int main(int argc, char* argv[])
 	// FIXME: load the floor into g_buffer_objects[kFloorVao][*],
 	//        and bind these VBO to g_array_objects[kFloorVao]
 
+    //load floor
+	// CHECK_GL_ERROR(glGenVertexArrays(kNumVaos, &g_array_objects[0]));
+	// CHECK_GL_ERROR(glBindVertexArray(g_array_objects[kFloorVao]));
+	// CHECK_GL_ERROR(glGenBuffers(kNumVbos, &g_buffer_objects[kFloorVao][0]));
+	// CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, g_buffer_objects[kFloorVao][kVertexBuffer]));
+	
 	// Setup vertex shader.
 	GLuint vertex_shader_id = 0;
 	const char* vertex_source_pointer = vertex_shader;
@@ -308,6 +382,7 @@ int main(int argc, char* argv[])
 	CHECK_GL_ERROR(glShaderSource(fragment_shader_id, 1, &fragment_source_pointer, nullptr));
 	glCompileShader(fragment_shader_id);
 	CHECK_GL_SHADER_ERROR(fragment_shader_id);
+
 
 	// Let's create our program.
 	GLuint program_id = 0;
@@ -349,6 +424,13 @@ int main(int argc, char* argv[])
 	GLint floor_view_matrix_location = 0;
 	GLint floor_light_position_location = 0;
 
+    //Setup floor shader 
+	/* const char* ground_floor_source_pointer  = ground_floor_fragment_shader;
+     CHECK_GL_ERROR(floor_program_id = glCreateShader(GL_FRAGMENT_SHADER));
+	 CHECK_GL_ERROR(glShaderSource(floor_program_id, 1, &ground_floor_source_pointer, nullptr));
+	 glCompileShader(floor_program_id);
+	 CHECK_GL_SHADER_ERROR(floor_program_id);*/
+
 	glm::vec4 light_position = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
 	float aspect = 0.0f;
 	float theta = 0.0f;
@@ -365,10 +447,12 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR(glBindVertexArray(g_array_objects[kGeometryVao]));
 
 		if (g_menger && g_menger->is_dirty()) {
+			cout << "new menger" << endl;
 			g_menger->generate_geometry(obj_vertices, obj_faces);
 			g_menger->set_clean();
 
 			// FIXME: Upload your vertex data here.
+
 		}
 
 		// Compute the projection matrix.

@@ -6,13 +6,22 @@
 class Camera {
 public:
 	glm::mat4 get_view_matrix() const;
+	glm::mat4 lookAt() const;
+	glm::mat4 zoomMouse() const;
+	glm::mat4 zoomKey() const;
 	// FIXME: add functions to manipulate camera objects.
+	void setFPS(bool on);
+	//void getFPS(){return fps};
 private:
 	float camera_distance_ = 3.0;
-	glm::vec3 look_ = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 up_ = glm::vec3(0.0f, 1.0, 0.0f);
-	glm::vec3 eye_ = glm::vec3(0.0f, 0.0f, camera_distance_);
+	// glm::vec3 look_ = glm::vec3(0.0f, 0.0f, -1.0f);
+	// glm::vec3 up_ = glm::vec3(0.0f, 1.0, 0.0f);
+	// glm::vec3 eye_ = glm::vec3(0.0f, 0.0f, camera_distance_);
+	glm::vec3 look_ = glm::vec3(-1.0f, -1.0f, -1.0f);
+    glm::vec3 up_ = glm::vec3(1.0f, 2.0, 1.0f);
+    glm::vec3 eye_ = glm::vec3(camera_distance_, camera_distance_, camera_distance_);
 	// Note: you may need additional member variables
+	bool fps;
 };
 
 #endif
