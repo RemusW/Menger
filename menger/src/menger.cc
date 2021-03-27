@@ -46,7 +46,7 @@ Menger::generate_geometry(std::vector<glm::vec4>& obj_vertices,
 	obj_faces.clear();
 	glm::vec3 M = glm::vec3(.5,.5,.5);
 	glm::vec3 m = glm::vec3(-1*M.x, -1*M.y, -1*M.z);
-	cout << nesting_level_ << endl;
+	cout << nesting_level_ << " nesting level" << endl;
 	Menger::subdivide(2, M, m, obj_vertices, obj_faces);
 
 	// cout << "test\n";
@@ -192,53 +192,3 @@ Menger::subdivide(int depth, glm::vec3 M, glm::vec3 m, std::vector<glm::vec4>& o
 	m_kj = glm::vec3(m.x+L, m.y+L, m.z+L);
 	subdivide(depth-1, M_kj, m_kj, obj_vertices, obj_faces);
 }
-
-/* for(int k=0; k<3; k++) {				// bottom to top layers
-		for(int j=0; j<3; j++) {			// back to front cubes
-			for(int l=0; l<3; l++) {		// left to right cubes
-				int offset = k*j*l;
-				if(offset != 4 || offset != 10 || offset != 12 || offset != 13 || offset != 14 || offset != 16 || offset != 22) {
-					glm::dvec3 M_kj;		// max bounds
-					glm::dvec3 m_kj;		// min bounds
-					if(j==0){
-						if(l==0) {
-							M_kj = glm::vec3(M.x-L, M.y-L, M.z-L);
-							m_kj = glm::vec3(m.x-L, m.y-L, m.z-L);
-							subdivide(depth-1, M_kj, m_kj, obj_vertices, obj_faces);
-						}
-						if(l==1) {
-							M_kj = glm::vec3(M.x-L, M.y-L, M.z-L);
-							m_kj = glm::vec3(m.x-L, m.y-L, m.z-L);
-							subdivide(depth-1, M_kj, m_kj, obj_vertices, obj_faces);
-						}
-						if(l==2) {
-
-						}
-					}
-					if(j==0){
-						if(l==0) {
-
-						}
-						if(l==1) {
-
-						}
-						if(l==2) {
-
-						}
-					}
-					if(j==0){
-						if(l==0) {
-
-						}
-						if(l==1) {
-
-						}
-						if(l==2) {
-
-						}
-					}
-					//CreateMenger(M_kj, m_kj, offset, obj_vertices, obj_faces);
-				}
-			}
-		}
-	} */
