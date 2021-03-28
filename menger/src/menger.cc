@@ -47,7 +47,7 @@ Menger::generate_geometry(std::vector<glm::vec4>& obj_vertices,
 	glm::vec3 M = glm::vec3(.5,.5,.5);
 	glm::vec3 m = glm::vec3(-1*M.x, -1*M.y, -1*M.z);
 	cout << nesting_level_ << " nesting level" << endl;
-	Menger::subdivide(2, M, m, obj_vertices, obj_faces);
+	Menger::subdivide(nesting_level_, M, m, obj_vertices, obj_faces);
 
 	// cout << "test\n";
 	//draw cube here

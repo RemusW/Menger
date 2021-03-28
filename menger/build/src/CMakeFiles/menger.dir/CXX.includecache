@@ -6,43 +6,19 @@
 
 #IncludeRegexTransform: 
 
-../lib/utgraphicsutil/debuggl.h
-
+/home/remusw/Documents/Graphics/Proj3/menger/src/camera.cc
+camera.h
 /home/remusw/Documents/Graphics/Proj3/menger/src/camera.h
-glm/glm.hpp
--
-
-/home/remusw/Documents/Graphics/Proj3/menger/src/main.cc
-fstream
--
-iostream
--
-string
--
-vector
--
-memory
--
 glm/glm.hpp
 -
 glm/gtc/matrix_transform.hpp
 -
+iostream
+-
 glm/gtx/string_cast.hpp
 -
-GL/glew.h
--
-GLFW/glfw3.h
--
-debuggl.h
--
-menger.h
-/home/remusw/Documents/Graphics/Proj3/menger/src/menger.h
-camera.h
-/home/remusw/Documents/Graphics/Proj3/menger/src/camera.h
 
-/home/remusw/Documents/Graphics/Proj3/menger/src/menger.h
+/home/remusw/Documents/Graphics/Proj3/menger/src/camera.h
 glm/glm.hpp
--
-vector
 -
 

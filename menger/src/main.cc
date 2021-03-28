@@ -71,7 +71,7 @@ void main()
 	for (n = 0; n < gl_in.length(); n++) {
 		light_direction = vs_light_direction[n];
 		gl_Position =  projection * gl_in[n].gl_Position;
-		//normal = projection * gl_in[0].gl_Position;
+		normal = projection * gl_in[0].gl_Position;
 		// normal = projection * c;
 		EmitVertex();
 	}
@@ -184,28 +184,31 @@ KeyCallback(GLFWwindow* window,
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	else if (key == GLFW_KEY_S && mods == GLFW_MOD_CONTROL && action == GLFW_RELEASE) {
 		// FIXME: save geometry to OBJ
-		if (action != GLFW_RELEASE )
-		{
-			switch (key) {
-				case     GLFW_KEY_W : g_camera.zoomKey(-1); break;
-				case     GLFW_KEY_S : g_camera.zoomKey(1); break;
-				case     GLFW_KEY_A : break;
-				case     GLFW_KEY_D : break;
-				case	 GLFW_KEY_LEFT : break;
-				case	 GLFW_KEY_RIGHT : break;
-				case	 GLFW_KEY_DOWN : break;
-				case	 GLFW_KEY_UP : break;
-				case	 GLFW_KEY_C : cout << "pressing C" << endl; g_camera.setFPS(); break;
-				default : break;
-			}
-		}
+	} else if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
+		g_camera.zoomKeyWS(1);
+	} else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
+		g_camera.zoomKeyWS(-1);
+	} else if (key == GLFW_KEY_A && action != GLFW_RELEASE) {
+		g_camera.camKeyAD(-1);
+	} else if (key == GLFW_KEY_D && action != GLFW_RELEASE) {
+		g_camera.camKeyAD(1);
+	} else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+		g_camera.camKeyLeftRight(-1);
+	} else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+		g_camera.camKeyLeftRight(1);
+	} else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+		g_camera.camKeyUpDown(-1);
+	} else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+		g_camera.camKeyUpDown(1);
+	} else if (key == GLFW_KEY_C && action != GLFW_RELEASE) {
+		g_camera.setFPS();
 	}
 	if (!g_menger)
 		return ; // 0-4 only available in Menger mode.
 	if (key == GLFW_KEY_0 && action != GLFW_RELEASE) {
-		g_menger->set_nesting_level(0);
 		// FIXME: Change nesting level of g_menger
 		// Note: GLFW_KEY_0 - 4 may not be continuous.
+		g_menger->set_nesting_level(0);
 	} else if (key == GLFW_KEY_1 && action != GLFW_RELEASE) {
 		g_menger->set_nesting_level(1);
 	} else if (key == GLFW_KEY_2 && action != GLFW_RELEASE) {
@@ -220,34 +223,40 @@ KeyCallback(GLFWwindow* window,
 int g_current_button;
 bool g_mouse_pressed;
 
-int lastX = 0;
-int lastY = 0;
+int prevX = 0;
+int prevY = 0;
 
 void
 MousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
-	// cout << mouse_x << " " << mouse_y << " || " << lastX << " " << lastY << endl;
+	cout << mouse_x << " " << mouse_y << " || " << prevX << " " << prevY << endl;
 	if (!g_mouse_pressed){
-		lastX = mouse_x;
-		lastY = mouse_y;
+		prevX = mouse_x;
+		prevY = mouse_y;
 		return;
 	}
 	if (g_current_button == GLFW_MOUSE_BUTTON_LEFT) {
 		// FIXME: left drag
-	} else if (g_current_button == GLFW_MOUSE_BUTTON_RIGHT) {
-		if (lastX > mouse_y){
-			// cout << "right mouse zoom in" << mouse_y << endl;		
+		//projected point is mouse_x and mouse_y
+		glm::vec3 mouse_direction = glm::vec3(0,0,0);
+		float slopeRise = mouse_y - prevY;
+		float slopeRun = mouse_x - prevX;
+
+	} 
+	else if (g_current_button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (prevY > mouse_y){
+			cout << "right mouse zoom in " << mouse_y << endl;		
 			g_camera.zoomMouse(1);
 		}
-		else if (lastX < mouse_y) {
-			// cout << "right mouse out" << mouse_y << endl;
+		else if (prevY < mouse_y) {
+			cout << "right mouse out " << mouse_y << endl;
 			g_camera.zoomMouse(-1);
 		}
-	} else if (g_current_button == GLFW_MOUSE_BUTTON_MIDDLE) {
-		// FIXME: right drag
+	} 
+	else if (g_current_button == GLFW_MOUSE_BUTTON_MIDDLE) {
 	}
-	lastX = mouse_x;
-	lastY = mouse_y;
+	prevX = mouse_x;
+	prevY = mouse_y;
 }
 
 void
@@ -296,7 +305,7 @@ int main(int argc, char* argv[])
         //FIXME: Create the geometry from a Menger object.
 		g_menger->generate_geometry(obj_vertices, obj_faces);
         //CreateTriangle(obj_vertices, obj_faces);
-        CreateFloor(floor_vertices,floor_faces);
+        //CreateFloor(floor_vertices,floor_faces);
 	g_menger->set_nesting_level(1);
 
 	glm::vec4 min_bounds = glm::vec4(std::numeric_limits<float>::max());
@@ -461,6 +470,20 @@ int main(int argc, char* argv[])
 			g_menger->set_clean();
 			// FIXME: Upload your vertex data here.
 			
+			// Setup vertex data in a VBO.
+			CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kVertexBuffer]));
+			// NOTE: We do not send anything right now, we just describe it to OpenGL.
+			CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER,
+						sizeof(float) * obj_vertices.size() * 4, obj_vertices.data(),
+						GL_STATIC_DRAW));
+			CHECK_GL_ERROR(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+			CHECK_GL_ERROR(glEnableVertexAttribArray(0));
+
+			// Setup element array buffer.
+			CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kIndexBuffer]));
+			CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+						sizeof(uint32_t) * obj_faces.size() * 3,
+						obj_faces.data(), GL_STATIC_DRAW));
 		}
 
 		// Compute the projection matrix.
