@@ -8,18 +8,6 @@
 
 ../lib/utgraphicsutil/debuggl.h
 
-/home/remusw/Documents/Graphics/Proj3/menger/src/camera.cc
-camera.h
-/home/remusw/Documents/Graphics/Proj3/menger/src/camera.h
-glm/glm.hpp
--
-glm/gtc/matrix_transform.hpp
--
-iostream
--
-glm/gtx/string_cast.hpp
--
-
 /home/remusw/Documents/Graphics/Proj3/menger/src/camera.h
 glm/glm.hpp
 -

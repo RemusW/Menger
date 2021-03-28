@@ -69,12 +69,8 @@ glm::mat4 Camera::lookAt() const
 void Camera::camRotation(glm::vec4 mouse_dir)
 {
 	float rad = 3.14f/180*rotation_speed;
-	glm::vec3 world_mouse = glm::vec3(0.0f,1.0f,0.0f); 
-	world_mouse.x = mouse_dir.x;
-	world_mouse.y = mouse_dir.y;
-	world_mouse.z = mouse_dir.z;
-	world_mouse = glm::vec3(0,1,0);
-	glm::vec3 rotAxis = glm::normalize(glm::cross(look_, world_mouse));
+	mouse_dir.y *= -1.0f;
+	glm::vec3 rotAxis = glm::normalize(glm::cross(look_, glm::vec3(-mouse_dir)));
 	glm::mat4 rot = glm::rotate(glm::mat4(1), rad, rotAxis);
 	if(!fps_mode) {
 		// ORBIT MODE: update eye
@@ -103,6 +99,7 @@ void Camera::camRotation(glm::vec4 mouse_dir)
 		look_.z = look4.z;
 		up_ = glm::vec3(glm::vec4(up_, 0) * rot);
 	}
+	cout << "RotAxis: 			" << glm::to_string(rotAxis) << endl;
 	cout << "Eye: 			" << glm::to_string(eye_) << endl;
 	cout << "Look:		 	" << glm::to_string(look_) << endl;
 	cout << "Camera_dist: 	" << camera_distance_<< endl;
