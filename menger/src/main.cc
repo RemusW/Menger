@@ -38,8 +38,9 @@ uniform vec4 light_position;
 out vec4 vs_light_direction;
 void main()
 {
-	gl_Position = view * vertex_position;
-	vs_light_direction = -gl_Position + view * light_position;
+	gl_Position = vertex_position;
+	vec4 viewPos = view * vertex_position;
+	vs_light_direction = -viewPos + view * light_position;
 }
 )zzz";
 
@@ -48,6 +49,7 @@ R"zzz(#version 330 core
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 uniform mat4 projection;
+uniform mat4 view;
 in vec4 vs_light_direction[];
 flat out vec4 normal;
 out vec4 light_direction;
@@ -59,19 +61,15 @@ void main()
 	a = (gl_in[1].gl_Position - gl_in[0].gl_Position);
 	b = (gl_in[2].gl_Position - gl_in[0].gl_Position);
 	vec3 a3, b3;
-	a3.x = a.x;
-	a3.y = a.y;
-	a3.z = a.z;
-	b3.x = b.x;
-	b3.y = b.y;
-	b3.z = b.z;
+	a3 = vec3(a);
+	b3 = vec3(b);
 	vec3 cx = cross(a3, b3);
-	cx = vec3(1,0,1);
-	vec4 c = vec4(cx.x, cx.y, cx.z, 1.0f);
+	vec4 c = vec4(cx.x, cx.y, cx.z, 0.0f);
+	normal = c;
 	for (n = 0; n < gl_in.length(); n++) {
 		light_direction = vs_light_direction[n];
-		gl_Position =  projection * gl_in[n].gl_Position;
-		normal = projection * gl_in[0].gl_Position;
+		gl_Position =  projection * view * gl_in[n].gl_Position;
+		// normal = projection * gl_in[0].gl_Position;
 		// normal = projection * c;
 		EmitVertex();
 	}
@@ -96,11 +94,12 @@ void main()
     	color = vec4(0.0, 0.0, 1.0, 1.0); //blue
 	float dot_nl = dot(normalize(light_direction), normalize(normal));
 	dot_nl = clamp(dot_nl, 0.0, 1.0);
-	fragment_color = clamp(dot_nl * color, 0.0, 1.0);
+	fragment_color = dot_nl * color;
 	fragment_color = color;
+
 }
 )zzz";
-
+//fragment_color = clamp(dot_nl * color, 0.0, 1.0);
 // FIXME: Implement shader effects with an alternative shader.
 const char* floor_fragment_shader =
 R"zzz(#version 330 core
@@ -109,10 +108,10 @@ in vec4 light_direction;
 out vec4 fragment_color;
 void main()
 {
-	vec4 color = vec4(1.0,1.0,1.0,1.0);
+	vec4 color = vec4(1.0,1.0,1.0,0.0);
 	float dot_nl = dot(normalize(light_direction), normalize(normal));
 	dot_nl = clamp(dot_nl, 0.0, 1.0);
-	fragment_color = clamp(dot_nl * color, 0.0, 1.0);
+    fragment_color = dot_nl * color;
 }
 )zzz";
 
@@ -132,12 +131,8 @@ CreateTriangle(std::vector<glm::vec4>& vertices,
 void CreateFloor (std::vector<glm::vec4>& vertices,
         std::vector<glm::uvec3>& indices) 
 {
-	vertices.push_back(glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f));
-	vertices.push_back(glm::vec4(0.5f, -0.5f, -0.5f, 1.0f));
-	vertices.push_back(glm::vec4(0.0f, 0.5f, -0.5f, 1.0f));
-	indices.push_back(glm::uvec3(0, 1, 2));
 	//l-r/u-d/n-f
-	// double M = 2.1f;
+	// double M = 1001.1f;
 	// double m = -1*M;
 	// double t = 1;	
 
@@ -158,7 +153,18 @@ SaveObj(const std::string& file,
         const std::vector<glm::vec4>& vertices,
         const std::vector<glm::uvec3>& indices)
 {
-
+   //ofstream file_write;
+   //open file file_write.open("file.txt",ios::app);
+   // file_write.write((char*)&("VERTICES:\n"),sizeof(char*));
+   for (glm::vec4 vertex: vertices)
+   {
+    //file_write.write((char*)&vertex,sizeof(vertex));
+   }
+   // file_write.write((char*)&("INDICIES:\n"),sizeof(char*));
+   for (glm::uvec3 index: indices)
+   {
+    //file_write.write((char*)&index,sizeof(index));
+   }
 }
 
 void
@@ -206,8 +212,6 @@ KeyCallback(GLFWwindow* window,
 	if (!g_menger)
 		return ; // 0-4 only available in Menger mode.
 	if (key == GLFW_KEY_0 && action != GLFW_RELEASE) {
-		// FIXME: Change nesting level of g_menger
-		// Note: GLFW_KEY_0 - 4 may not be continuous.
 		g_menger->set_nesting_level(0);
 	} else if (key == GLFW_KEY_1 && action != GLFW_RELEASE) {
 		g_menger->set_nesting_level(1);
@@ -229,7 +233,7 @@ int prevY = 0;
 void
 MousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
-	cout << mouse_x << " " << mouse_y << " || " << prevX << " " << prevY << endl;
+	// cout << mouse_x << " " << mouse_y << " || " << prevX << " " << prevY << endl;
 	if (!g_mouse_pressed){
 		prevX = mouse_x;
 		prevY = mouse_y;
@@ -237,22 +241,30 @@ MousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y)
 	}
 	if (g_current_button == GLFW_MOUSE_BUTTON_LEFT) {
 		// FIXME: left drag
-		//projected point is mouse_x and mouse_y
-		glm::vec3 mouse_direction = glm::vec3(0,0,0);
-		float slopeRise = mouse_y - prevY;
-		float slopeRun = mouse_x - prevX;
-
+		// MVP * vertex to get screen position
+		// vertex * MVP^-1 to get screen to world
+		//glm::vec3 mouse_direction = glm::vec3(0,0,0);
+		//float slopeRise = mouse_y - prevY;
+		//float slopeRun = mouse_x - prevX;
+		// "stollen" stolen?
+		float aspect = static_cast<float>(window_width) / window_height;
+		glm::mat4 projection_matrix =
+			glm::perspective(glm::radians(45.0f), aspect, 0.0001f, 1000.0f); 
+	    glm::mat4 screen_to_camera = glm::inverse(projection_matrix);
+        glm::vec4 screen = glm::vec4(mouse_x,mouse_y,0,0);
+		glm::vec4 point_cam = screen * screen_to_camera;
+		glm::mat4 camera_to_world = glm::inverse(g_camera.get_view_matrix());
+		glm::vec4 world_mouse_direction = point_cam * camera_to_world;
+		g_camera.camRotation(glm::vec4(0,0,0,0));
 	} 
 	else if (g_current_button == GLFW_MOUSE_BUTTON_RIGHT) {
 		if (prevY > mouse_y){
-			cout << "right mouse zoom in " << mouse_y << endl;		
 			g_camera.zoomMouse(1);
 		}
 		else if (prevY < mouse_y) {
-			cout << "right mouse out " << mouse_y << endl;
 			g_camera.zoomMouse(-1);
 		}
-	} 
+	}
 	else if (g_current_button == GLFW_MOUSE_BUTTON_MIDDLE) {
 	}
 	prevX = mouse_x;

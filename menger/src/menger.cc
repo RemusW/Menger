@@ -46,28 +46,22 @@ Menger::generate_geometry(std::vector<glm::vec4>& obj_vertices,
 	obj_faces.clear();
 	glm::vec3 M = glm::vec3(.5,.5,.5);
 	glm::vec3 m = glm::vec3(-1*M.x, -1*M.y, -1*M.z);
-	cout << nesting_level_ << " nesting level" << endl;
 	Menger::subdivide(nesting_level_, M, m, obj_vertices, obj_faces);
-
-	// cout << "test\n";
-	//draw cube here
-	//CreateMenger()
 }
 
 void
 Menger::CreateMenger(glm::vec3 M, glm::vec3 m, std::vector<glm::vec4>& obj_vertices, std::vector<glm::uvec3>& obj_faces) const
 {
 	int offset = obj_vertices.size();
-	int camoffsest = 0;
 	// Create starting cube
-	obj_vertices.push_back(glm::vec4(m.x,m.y,m.z-camoffsest, 1.0f));	// 0, far-bot left
-	obj_vertices.push_back(glm::vec4(M.x,m.y,m.z-camoffsest, 1.0f));	// 1, far-bot right
-	obj_vertices.push_back(glm::vec4(M.x,m.y,M.z-camoffsest, 1.0f));	// 2, near-bot right
-	obj_vertices.push_back(glm::vec4(m.x,m.y,M.z-camoffsest, 1.0f));	// 3, near_bot left
-	obj_vertices.push_back(glm::vec4(m.x,M.y,m.z-camoffsest, 1.0f));	// 4, far-top left
-	obj_vertices.push_back(glm::vec4(M.x,M.y,m.z-camoffsest, 1.0f));	// 5, far-top right
-	obj_vertices.push_back(glm::vec4(M.x,M.y,M.z-camoffsest, 1.0f));	// 6, near-top right
-	obj_vertices.push_back(glm::vec4(m.x,M.y,M.z-camoffsest, 1.0f));	// 7, near-top left
+	obj_vertices.push_back(glm::vec4(m.x,m.y,m.z, 1.0f));	// 0, far-bot left
+	obj_vertices.push_back(glm::vec4(M.x,m.y,m.z, 1.0f));	// 1, far-bot right
+	obj_vertices.push_back(glm::vec4(M.x,m.y,M.z, 1.0f));	// 2, near-bot right
+	obj_vertices.push_back(glm::vec4(m.x,m.y,M.z, 1.0f));	// 3, near_bot left
+	obj_vertices.push_back(glm::vec4(m.x,M.y,m.z, 1.0f));	// 4, far-top left
+	obj_vertices.push_back(glm::vec4(M.x,M.y,m.z, 1.0f));	// 5, far-top right
+	obj_vertices.push_back(glm::vec4(M.x,M.y,M.z, 1.0f));	// 6, near-top right
+	obj_vertices.push_back(glm::vec4(m.x,M.y,M.z, 1.0f));	// 7, near-top left
 	
 	// Triangulate faces
 	// first pass
@@ -90,8 +84,6 @@ void
 Menger::subdivide(int depth, glm::vec3 M, glm::vec3 m, std::vector<glm::vec4>& obj_vertices, std::vector<glm::uvec3>& obj_faces) const{
 	double L = pow(1.0/3.0, 2+1-depth);
 	L = abs(M.x - m.x)/3.0;
-	//cout << "depth " << depth << " L: " << L << endl;
-	//cout << "L: " << L << endl;
 	if(depth == 0){
 		Menger::CreateMenger(M, m, obj_vertices, obj_faces);
 		return;

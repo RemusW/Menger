@@ -66,9 +66,47 @@ glm::mat4 Camera::lookAt() const
 	return view;
 }
 
-void Camera::camRotation()
+void Camera::camRotation(glm::vec4 mouse_dir)
 {
-	
+	float rad = 3.14f/180*rotation_speed;
+	glm::vec3 world_mouse = glm::vec3(0.0f,1.0f,0.0f); 
+	world_mouse.x = mouse_dir.x;
+	world_mouse.y = mouse_dir.y;
+	world_mouse.z = mouse_dir.z;
+	world_mouse = glm::vec3(0,1,0);
+	glm::vec3 rotAxis = glm::normalize(glm::cross(look_, world_mouse));
+	glm::mat4 rot = glm::rotate(glm::mat4(1), rad, rotAxis);
+	if(!fps_mode) {
+		// ORBIT MODE: update eye
+		// position center at the origin of the world
+		// rotate camera
+		// reapply translation on center back to original positon
+		// or, rotate the -look_ and recompute the eye
+		glm::vec3 center = eye_ + camera_distance_*look_;
+		glm::vec4 look4 = glm::vec4(look_, 0);
+		look4 = look4 * rot;
+		look_.x = look4.x;
+		look_.y = look4.y;
+		look_.z = look4.z;
+		eye_ = center - camera_distance_*glm::vec3(look_);
+		up_ = glm::vec3(glm::vec4(up_, 0) * rot);
+		// cout << "Center: " << glm::to_string(center) << endl;
+		// cout << "EYE: " << glm::to_string(eye_) << endl;
+		// cout << "Look_: " << glm::to_string(look_) << endl;
+	}
+	else {
+		// FPS MODE: update center
+		glm::vec4 look4 = glm::vec4(look_, 0);
+		look4 = look4 * rot;
+		look_.x = look4.x;
+		look_.y = look4.y;
+		look_.z = look4.z;
+		up_ = glm::vec3(glm::vec4(up_, 0) * rot);
+	}
+	cout << "Eye: 			" << glm::to_string(eye_) << endl;
+	cout << "Look:		 	" << glm::to_string(look_) << endl;
+	cout << "Camera_dist: 	" << camera_distance_<< endl;
+	cout << "Center: 		" << glm::to_string(eye_ + camera_distance_*look_) << endl << endl;
 }
 
 void Camera::zoomMouse(float zoomDir) 
@@ -81,10 +119,10 @@ void Camera::zoomMouse(float zoomDir)
 	// cout << "Camera_dist: 	" << camera_distance_<< endl;
 	// cout << "Center: 		" << glm::to_string(eye_ + camera_distance_*look_) << endl;
 	camera_distance_ +=  zoomDir * zoom_speed;
-	// if (camera_distance_ >= 0 )
+	if (camera_distance_ >= 0 )
 		eye_ += zoomDir * zoom_speed * look_;
-	// else
-	// 	camera_distance_ = 0;
+	else
+		camera_distance_ = 0;
 }
 
 void Camera::zoomKeyWS(float zoomDir)

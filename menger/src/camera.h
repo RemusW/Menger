@@ -8,17 +8,14 @@ public:
 	glm::mat4 get_view_matrix() const;
 	glm::mat4 lookAt() const;
 	// rotation
-	void camRotation();
+	void camRotation(glm::vec4 mouse_dir);
 	// zooming
 	void zoomMouse(float zoomDir);
 	void zoomKeyWS(float zoomDir);
-	// 'a' and 'd' keys
 	void camKeyAD(float dir);
 	void camKeyUpDown(float dir);
 	void camKeyLeftRight(float dir);
-	// FIXME: add functions to manipulate camera objects.
 	void setFPS();
-	//void getFPS(){return fps};
 private:
 	float zoom_speed = 0.1f;
 	float pan_speed = 0.2f;
