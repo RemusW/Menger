@@ -36,11 +36,14 @@ in vec4 vertex_position;
 uniform mat4 view;
 uniform vec4 light_position;
 out vec4 vs_light_direction;
+out VertexData {
+    vec4 world_pos;
+} VertexOut;
 void main()
 {
-	gl_Position = vertex_position;
-	vec4 viewPos = view * vertex_position;
-	vs_light_direction = -viewPos + view * light_position;
+	VertexOut.world_pos = vertex_position;
+	gl_Position = view * vertex_position;
+	vs_light_direction = -gl_Position + view * light_position;
 }
 )zzz";
 
@@ -50,6 +53,9 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 uniform mat4 projection;
 uniform mat4 view;
+in VertexData {
+    vec4 world_pos;
+} VertexIn[3];
 in vec4 vs_light_direction[];
 flat out vec4 normal;
 out vec4 light_direction;
@@ -58,22 +64,21 @@ void main()
 	int n = 0;
 	normal = vec4(0.0, 0.0, 1.0f, 0.0);
 	vec4 a,b;
-	a = (gl_in[1].gl_Position - gl_in[0].gl_Position);
-	b = (gl_in[2].gl_Position - gl_in[0].gl_Position);
+	a = (VertexIn[1].world_pos - VertexIn[0].world_pos);
+	b = (VertexIn[2].world_pos - VertexIn[0].world_pos);
 	vec3 a3, b3;
 	a3 = vec3(a);
 	b3 = vec3(b);
 	vec3 cx = cross(a3, b3);
-	vec4 c = vec4(cx.x, cx.y, cx.z, 0.0f);
+	vec4 c = vec4(cx, 0.0f);
 	normal = c;
 	for (n = 0; n < gl_in.length(); n++) {
 		light_direction = vs_light_direction[n];
-		gl_Position =  projection * view * gl_in[n].gl_Position;
-		// normal = projection * gl_in[0].gl_Position;
-		// normal = projection * c;
+		gl_Position =  projection * gl_in[n].gl_Position;
+		// normal =  projection * gl_in[n].gl_Position;
+
 		EmitVertex();
 	}
-	//normal = projection * gl_in[0].gl_Position;
 	EndPrimitive();
 }
 )zzz";
@@ -102,20 +107,29 @@ void main()
 // FIXME: Implement shader effects with an alternative shader.
 const char* floor_fragment_shader =
 R"zzz(#version 330 core
+uniform mat4 projection;
+uniform mat4 view;
 flat in vec4 normal;
 in vec4 light_direction;
 out vec4 fragment_color;
 void main()
 {
-	vec4 color = vec4(1.0,1.0,1.0,0.0);
+	// vec4 color = vec4(1.0,1.0,1.0,0.0);
+	// if (abs(normal.x) == 1.0)
+	//    color = vec4(0.0,0.0,0.0,1.0); //black
+	// else if (abs(normal.z) == 1.0)
+	//    color = vec4(1.0,1.0,1.0,1.0); //white
+	// color = vec4(0,1,0,1);
+	// float dot_nl = dot(normalize(light_direction), normalize(normal));
+	// dot_nl = clamp(dot_nl, 0.0, 1.0);
+    // fragment_color = dot_nl * color;
+
+	vec4 world_pos = projection * view * gl_FragCoord;
+	vec4 color = normal;
 	float dot_nl = dot(normalize(light_direction), normalize(normal));
 	dot_nl = clamp(dot_nl, 0.0, 1.0);
-	if (abs(normal.x) == 1.0)
-	   color = vec4(0.0,0.0,0.0,1.0); //black
-	else if (abs(normal.z) == 1.0)
-	   color = vec4(1.0,1.0,1.0,1.0); //white
-	color = vec4(0,1,0,1);
-    fragment_color = dot_nl * color;
+	fragment_color = dot_nl * color;
+	// fragment_color = vec4(0.0, 0.0, 1.0, 1.0);
 }
 )zzz";
 
@@ -127,25 +141,12 @@ CreateTriangle(std::vector<glm::vec4>& vertices,
 	vertices.push_back(glm::vec4(0.5f, -0.5f, -0.5f, 1.0f));
 	vertices.push_back(glm::vec4(0.0f, 0.5f, -0.5f, 1.0f));
 	indices.push_back(glm::uvec3(0, 1, 2));
-
-	// double M = 100.0f;
-	// double m = -1*M;
-	// double t = 1;	
-	// double fixed_y = 0;
-
-	// vertices.push_back(glm::vec4(-M, -0.5f, -M, 1.0f)); // 0
-	// vertices.push_back(glm::vec4(M, -0.5f, -M, 1.0f)); // 1
-	// vertices.push_back(glm::vec4(-M, -0.5f, M, 1.0f)); // 2
-	// vertices.push_back(glm::vec4(M, -0.5f, M, 1.0f)); // 3
-	// indices.push_back(glm::uvec3(1,0,2));
-	// indices.push_back(glm::uvec3(3,1,2));
 }
 
 void CreateFloor (std::vector<glm::vec4>& vertices,
         std::vector<glm::uvec3>& indices) 
 {
 	float M = 1000.0f;
-	float m = -1*M;
 	float t = 1;	
 	float fixed_y = -2;
 
@@ -155,15 +156,6 @@ void CreateFloor (std::vector<glm::vec4>& vertices,
 	vertices.push_back(glm::vec4(M, fixed_y, M, 1.0f)); // 3
 	indices.push_back(glm::uvec3(1,0,2));
 	indices.push_back(glm::uvec3(3,1,2));
- 
-
-	// vertices.push_back(glm::vec4(-0.5f, -0.5f, -0.5f, 1.0f)); // 0
-	// vertices.push_back(glm::vec4(0.5f, -0.5f, -0.5f, 1.0f)); // 1
-	// vertices.push_back(glm::vec4(-0.5f, -0.5f, 0.5f, 1.0f)); // 2
-	// vertices.push_back(glm::vec4(0.5f, -0.5f, 0.5f, 1.0f)); // 3
-	// indices.push_back(glm::uvec3(1,0,2));
-	// indices.push_back(glm::uvec3(3,1,2));
-    
 }
 		
 // FIXME: Save geometry to OBJ file
@@ -211,6 +203,7 @@ KeyCallback(GLFWwindow* window,
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	else if (key == GLFW_KEY_S && mods == GLFW_MOD_CONTROL && action == GLFW_RELEASE) {
 		// FIXME: save geometry to OBJ
+
 	} else if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
 		g_camera.zoomKeyWS(1);
 	} else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
@@ -262,24 +255,17 @@ MousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y)
 	}
 	if (g_current_button == GLFW_MOUSE_BUTTON_LEFT) {
 		// FIXME: left drag
-		// MVP * vertex to get screen position
-		// vertex * MVP^-1 to get screen to world
-		float aspect = static_cast<float>(window_width) / window_height;
-		glm::mat4 projection_matrix =
-			glm::perspective(glm::radians(45.0f), aspect, 0.0001f, 1000.0f); 
-		glm::mat4 viewproj = projection_matrix * g_camera.get_view_matrix();
-		glm::mat4 invVP = glm::inverse(viewproj);
-		glm::vec4 curPos = invVP * glm::vec4(mouse_x, mouse_y, 0, 0);
-		glm::vec4 prevPos = invVP * glm::vec4(prevX, prevY, 0, 0);
-		glm::vec4 mouse_direction = curPos - prevPos;
+		glm::vec4 mouse_direction;
+		mouse_direction.x = mouse_x - prevX;
+		mouse_direction.y = -(mouse_y - prevY);
 		g_camera.camRotation(mouse_direction);
-	} 
+	}
 	else if (g_current_button == GLFW_MOUSE_BUTTON_RIGHT) {
 		if (prevY > mouse_y){
-			g_camera.zoomMouse(1);
+			g_camera.zoomMouse(-1);
 		}
 		else if (prevY < mouse_y) {
-			g_camera.zoomMouse(-1);
+			g_camera.zoomMouse(1);
 		}
 	}
 	else if (g_current_button == GLFW_MOUSE_BUTTON_MIDDLE) {
@@ -552,7 +538,6 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
         
 		
-
 		// FIXME: Render the floor
 		// Note: What you need to do is
 		// 	1. Switch VAO
